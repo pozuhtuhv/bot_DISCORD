@@ -19,7 +19,12 @@ async def on_ready():
 
 @bot.command(name='hello')
 async def hello(ctx):
-    await ctx.send('안녕하세요')
+    await ctx.channel.send('안녕하세요')
+
+@bot.command(name='clean')
+async def clean(ctx, ea:int):
+    await ctx.channel.purge(limit=ea)
+    await ctx.channel.send(str(ea) +'개의 메시지를 삭제했습니다.')
 
 # 봇 작동
 bot.run(TOKEN)
