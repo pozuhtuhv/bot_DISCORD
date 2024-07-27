@@ -32,7 +32,7 @@ async def hello(ctx):
 @bot.command(name='clean')
 async def clean(ctx, ea:int):
     await ctx.channel.purge(limit=ea)
-    await ctx.channel.send(str(ea) +'개의 메시지를 삭제했습니다.')
+    await ctx.channel.send(str(ea) +'EA Message DELETE')
 
 # 보이스채널 입장
 @bot.command(name='voicein')
