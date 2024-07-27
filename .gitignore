@@ -1,5 +1,7 @@
 Include/
 Lib/
+etc/
+share/
 Scripts
 pyvenv.cfg
 .env
