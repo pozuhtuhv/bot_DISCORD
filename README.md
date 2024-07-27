@@ -1,5 +1,11 @@
 # BOT_DISCORD
 
+### Personal Discord Bot
+- [x] clean, voicein, voiceout, tts
+- [x] code optimize
+
+<br>
+
 1. Make New Server
 2. https://discord.com/developers -> Discord developer Page Login
 3. 'New Application' -> Name -> Policy Check -> Create

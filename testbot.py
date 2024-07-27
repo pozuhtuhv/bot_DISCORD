@@ -1,10 +1,8 @@
 import discord
 from discord.ext import commands
 import os
-import asyncio
 from navertts import NaverTTS
 from dotenv import load_dotenv
-import time
 
 # .env 파일 활성화
 load_dotenv()
@@ -28,7 +26,7 @@ async def on_ready():
 # 인사
 @bot.command(name='hello')
 async def hello(ctx):
-    await ctx.channel.send('안녕하세요')
+    await ctx.channel.send('생존확인')
 
 # 메세지 삭제
 @bot.command(name='clean')
@@ -52,21 +50,13 @@ async def voiceout(ctx):
         await channel.disconnect()
 
 # tts test
-@bot.command(name='vo')
+@bot.command(name='tts')
 async def on_message(ctx, *, text:str):
-
     if str(ctx.channel.id) == str(VOICE_TEXTCHANNEL_ID):   
         voice = bot.voice_clients[0]
-
         tts = NaverTTS(text, speed=0)
         tts.save('tts.mp3')
-
         voice.play(discord.FFmpegPCMAudio('tts.mp3'))
-
-        while voice.is_playing():
-            await asyncio.sleep(1)
-    else:
-        return
 
 # 봇 작동
 bot.run(TOKEN)
