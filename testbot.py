@@ -103,7 +103,8 @@ async def update_progress_bar(ctx, title, duration):
         if progress_message is None:
             progress_message = await ctx.send(f"{progress_bar} - `{title}`")
         else:
-            await progress_message.edit(content=f"{progress_bar} - `{title}`")
+            await progress_message.edit(content=f"{progress_bar} - \n `{title}`")
+
 
 # 재생 중지 명령어
 @bot.command(name='stop')
