@@ -26,9 +26,9 @@ bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 # 연결확인
 @bot.event
 async def on_ready():
-    print(f'Logged in as: {bot.user}')
     channel = bot.get_channel(int(VOICE_CHANNEL_ID))
     await channel.connect()
+    print(f'Logged in as: {bot.user}')
 
 # 봇 재시작
 @bot.command(name='restart')
@@ -80,7 +80,7 @@ async def play(ctx, url):
         start_time = time.time()
         ctx.voice_client.play(source, after=lambda e: print(f'오류 발생: {e}') if e else None)
 
-        await ctx.send(f'{original_url} :notes: 재생중')
+        await ctx.send(f'<{original_url}> :notes: 재생중')
 
         # 재생바 업데이트를 위한 루프 시작
         # 이전 메시지 초기화
