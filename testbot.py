@@ -14,6 +14,7 @@ CHANNEL_ID = os.getenv('CHANNEL_ID')
 VOICE_CHANNEL_ID = os.getenv('VOICE_CHANNEL_ID')
 VOICE_TEXTCHANNEL_ID = os.getenv('VOICE_TEXTCHANNEL_ID')
 ADMIN_ID = os.getenv('ADMIN_ID')
+STAFF_ROLE = "Admin"
 
 # Define intents
 intents = discord.Intents.default()
@@ -36,8 +37,8 @@ async def on_ready():
 async def restart(ctx):
     """봇을 재시작합니다."""
     try:
-        if ctx.author.id == ADMIN_ID:
-            await ctx.send("봇을 재시작합니다...")
+        if any(role.name == str(STAFF_ROLE) for role in ctx.author.roles):
+            await ctx.send("봇을 재시작합니다.")
 
             # 봇을 종료하고 프로세스를 다시 시작
             await bot.close()
@@ -49,6 +50,22 @@ async def restart(ctx):
 
     except Exception as e:
         await ctx.send(f"재시작 도중 오류가 발생했습니다: {str(e)}")
+
+# ROLE 확인
+@bot.command(name='myrole')
+async def list_roles(ctx):
+    """사용자의 역할을 출력합니다."""
+    # 사용자의 역할 목록 가져오기
+    roles = ctx.author.roles
+    
+    # 역할 이름만 추출 (역할 리스트의 첫 번째는 항상 @everyone이므로 제외)
+    role_names = [role.name for role in roles if role.name != "@everyone"]
+
+    if role_names:
+        # 역할 이름 출력
+        await ctx.send(f"{ctx.author.mention}님의 역할: " + ", ".join(role_names))
+    else:
+        await ctx.send(f"{ctx.author.mention}님은 특별한 역할이 없습니다.")
 
 # test
 progress_message = None  # 이전 메시지를 저장
@@ -102,13 +119,18 @@ async def update_progress_bar(ctx, title, duration):
     if ctx.voice_client and ctx.voice_client.is_playing():
         elapsed = time.time() - start_time  # 경과 시간 계산
         progress_bar = ymusic.create_progress_bar(elapsed, duration)
-        
-        # 이전 메시지 업데이트
-        if progress_message is None:
-            progress_message = await ctx.send(f"{progress_bar} \n `{title}`")
-        else:
-            await progress_message.edit(content=f"{progress_bar} \n `{title}`")
 
+        try:
+            # 이전 메시지 업데이트
+            if progress_message is None:
+                progress_message = await ctx.send(f"{progress_bar} \n `{title}`")
+            else:
+                await progress_message.edit(content=f"{progress_bar} \n `{title}`")
+        except discord.errors.NotFound:
+            # 메시지가 삭제되었을 경우 새로운 메시지 보내기
+            progress_message = await ctx.send(f"{progress_bar} \n `{title}`")
+        except Exception as e:
+            print(f"메시지 업데이트 중 오류 발생: {e}")
 
 # 재생 중지 명령어
 @bot.command(name='stop')
