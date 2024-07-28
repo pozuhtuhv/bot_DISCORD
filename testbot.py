@@ -101,7 +101,7 @@ async def update_progress_bar(ctx, title, duration):
         
         # 이전 메시지 업데이트
         if progress_message is None:
-            progress_message = await ctx.send(f"{progress_bar} - `{title}`")
+            progress_message = await ctx.send(f"{progress_bar} - \n `{title}`")
         else:
             await progress_message.edit(content=f"{progress_bar} - \n `{title}`")
 
