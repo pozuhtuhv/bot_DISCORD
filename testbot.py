@@ -13,6 +13,7 @@ TOKEN = os.getenv('TOKEN')
 CHANNEL_ID = os.getenv('CHANNEL_ID')
 VOICE_CHANNEL_ID = os.getenv('VOICE_CHANNEL_ID')
 VOICE_TEXTCHANNEL_ID = os.getenv('VOICE_TEXTCHANNEL_ID')
+ADMIN_ID = os.getenv('ADMIN_ID')
 
 # Define intents
 intents = discord.Intents.default()
@@ -35,13 +36,16 @@ async def on_ready():
 async def restart(ctx):
     """봇을 재시작합니다."""
     try:
-        await ctx.send("봇을 재시작합니다...")
+        if ctx.author.id == ADMIN_ID:
+            await ctx.send("봇을 재시작합니다...")
 
-        # 봇을 종료하고 프로세스를 다시 시작
-        await bot.close()
+            # 봇을 종료하고 프로세스를 다시 시작
+            await bot.close()
 
-        # Python 스크립트를 다시 실행
-        os.execl(sys.executable, sys.executable, *sys.argv)
+            # Python 스크립트를 다시 실행
+            os.execl(sys.executable, sys.executable, *sys.argv)
+        else:
+            await ctx.send('이 명령어를 사용할 수 있는 권한이 없습니다.')
 
     except Exception as e:
         await ctx.send(f"재시작 도중 오류가 발생했습니다: {str(e)}")
@@ -101,9 +105,9 @@ async def update_progress_bar(ctx, title, duration):
         
         # 이전 메시지 업데이트
         if progress_message is None:
-            progress_message = await ctx.send(f"{progress_bar} - \n `{title}`")
+            progress_message = await ctx.send(f"{progress_bar} \n `{title}`")
         else:
-            await progress_message.edit(content=f"{progress_bar} - \n `{title}`")
+            await progress_message.edit(content=f"{progress_bar} \n `{title}`")
 
 
 # 재생 중지 명령어
