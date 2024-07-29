@@ -5,6 +5,7 @@ from navertts import NaverTTS
 from dotenv import load_dotenv
 import sys
 from function.ymusic import *
+import asyncio
 
 # .env 파일 활성화
 load_dotenv()
@@ -14,9 +15,6 @@ VOICE_CHANNEL_ID = os.getenv('VOICE_CHANNEL_ID')
 VOICE_TEXTCHANNEL_ID = os.getenv('VOICE_TEXTCHANNEL_ID')
 ADMIN_ID = os.getenv('ADMIN_ID')
 STAFF_ROLE = "Admin"
-
-# Youtube Stream 
-current_video_url = None # 비디오 영상 주소
 
 # Define intents
 intents = discord.Intents.default()
@@ -100,9 +98,57 @@ async def on_message(ctx, *, text:str):
         tts.save('tts.mp3')
         voice.play(discord.FFmpegPCMAudio('tts.mp3'))
 
-# 음성 채널에 연결하여 YouTube 음악 재생
+class MusicQueue:
+    def __init__(self):
+        self.queue = asyncio.Queue()
+        self.current_song = None
+
+    async def add_song(self, song):
+        await self.queue.put(song)
+
+    async def get_next_song(self):
+        return await self.queue.get()
+
+    def is_empty(self):
+        return self.queue.empty()
+
+    def set_current_song(self, song):
+        self.current_song = song
+
+    def get_current_song(self):
+        return self.current_song
+
+# 전역 변수로 큐 생성
+music_queue = MusicQueue()
+
+
+async def play_next_song(ctx):
+    if music_queue.is_empty():
+        await ctx.send("재생 목록이 비어 있습니다.")
+        return
+
+    next_song = await music_queue.get_next_song()
+    audio_url, title, duration, original_url = next_song
+
+    # 오디오 소스 생성
+    source = discord.FFmpegPCMAudio(
+        audio_url,
+        before_options='-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+        options='-vn -bufsize 64M'
+    )
+
+    # 현재 재생 중인 노래 설정
+    music_queue.set_current_song(next_song)
+
+    # 오디오 재생
+    ctx.voice_client.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(play_next_song(ctx), bot.loop) if e is None else print(f'오류 발생: {e}'))
+
+    embed = discord.Embed(title=f'{title}', description=f'{original_url}', color=0x00ff56)
+    await ctx.send(embed=embed)
+
+
 @bot.command(name='ymusic')
-async def play(ctx, url):
+async def play(ctx, *, url):
     try:
         channel = bot.get_channel(int(VOICE_CHANNEL_ID))
 
@@ -115,30 +161,32 @@ async def play(ctx, url):
         # YouTube URL에서 오디오 스트리밍 소스 가져오기
         audio_url, title, duration, original_url = get_youtube_audio_source(url)
 
-        source = discord.FFmpegPCMAudio(
-            audio_url,
-            before_options='-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-            options='-vn -bufsize 64M'
-        )
+        if audio_url is None:
+            await ctx.send("오류가 발생했습니다. 유효한 YouTube URL을 입력하세요.")
+            return
 
-        # 오디오 재생
-        ctx.voice_client.play(source, after=lambda e: print(f'오류 발생: {e}') if e else None)
+        # 큐에 추가
+        await music_queue.add_song((audio_url, title, duration, original_url))
 
-        embed = discord.Embed(title=f'{title}', description=f'{original_url}', color=0x00ff56)
-        await ctx.send(embed=embed)
+        # 현재 재생 중인 음악이 없으면 재생 시작
+        if music_queue.get_current_song() is None or not ctx.voice_client.is_playing():
+            await play_next_song(ctx)
+        else:
+            embed = discord.Embed(title=f'{title} \n 이(가) 대기열에 추가되었습니다.', description=f'{original_url}', color=0x00ff56)
+            await ctx.send(embed=embed)
 
     except Exception as e:
         await ctx.send(f"오류가 발생했습니다: {str(e)}")
 
-# 재생 중지 명령어
+
 @bot.command(name='stop')
 async def stop(ctx):
     try:
         # 음성 채널에 연결되어 있는지 확인
         if ctx.voice_client is not None:
-
             # 오디오 재생 중지
             ctx.voice_client.stop()
+            music_queue.set_current_song(None)  # 현재 재생 중인 노래를 None으로 설정
 
             await ctx.send("현재 재생 중인 음악을 중지합니다.")
         else:
