@@ -1,9 +1,8 @@
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 import os
 from navertts import NaverTTS
 from dotenv import load_dotenv
-import time
 import sys
 from function.ymusic import *
 
@@ -17,9 +16,6 @@ ADMIN_ID = os.getenv('ADMIN_ID')
 STAFF_ROLE = "Admin"
 
 # Youtube Stream 
-progress_message = None  # 이전 메시지를 저장
-start_time = None  # 노래 시작 시점
-current_task = None # 진행중인 노래
 current_video_url = None # 비디오 영상 주소
 
 # Define intents
@@ -107,7 +103,6 @@ async def on_message(ctx, *, text:str):
 # 음성 채널에 연결하여 YouTube 음악 재생
 @bot.command(name='ymusic')
 async def play(ctx, url):
-    global start_time, progress_message, current_task
     try:
         channel = bot.get_channel(int(VOICE_CHANNEL_ID))
 
@@ -116,10 +111,6 @@ async def play(ctx, url):
             await channel.connect()
         else:
             await ctx.voice_client.move_to(channel)
-
-        # 이전 음악의 진행바 업데이트 중지
-        if current_task is not None and not current_task.done():
-            current_task.cancel()
 
         # YouTube URL에서 오디오 스트리밍 소스 가져오기
         audio_url, title, duration, original_url = get_youtube_audio_source(url)
@@ -131,60 +122,23 @@ async def play(ctx, url):
         )
 
         # 오디오 재생
-        start_time = time.time()
         ctx.voice_client.play(source, after=lambda e: print(f'오류 발생: {e}') if e else None)
 
-        await ctx.send(f'<{original_url}> :notes: 재생중')
-
-        # 진행바 초기화
-        progress_message = None
-        start_time = time.time()  # 시작 시간 갱신
-
-        # 새롭게 태스크 시작
-        current_task = update_progress_bar.start(ctx, title, duration)
+        embed = discord.Embed(title=f'{title}', description=f'{original_url}', color=0x00ff56)
+        await ctx.send(embed=embed)
 
     except Exception as e:
         await ctx.send(f"오류가 발생했습니다: {str(e)}")
 
-@tasks.loop(seconds=2)
-async def update_progress_bar(ctx, title, duration):
-    """2초마다 재생바 업데이트"""
-    global progress_message, start_time
-    if ctx.voice_client and ctx.voice_client.is_playing():
-        elapsed = time.time() - start_time  # 경과 시간 계산
-        progress_bar = create_progress_bar(elapsed, duration)
-
-        try:
-            # 이전 메시지 업데이트
-            if progress_message is None:
-                progress_message = await ctx.send(f"{progress_bar} \n `{title}`")
-            else:
-                await progress_message.edit(content=f"{progress_bar} \n `{title}`")
-        except discord.errors.NotFound:
-            # 메시지가 삭제되었을 경우 새로운 메시지 보내기
-            progress_message = await ctx.send(f"{progress_bar} \n `{title}`")
-        except Exception as e:
-            print(f"메시지 업데이트 중 오류 발생: {e}")
-
 # 재생 중지 명령어
 @bot.command(name='stop')
 async def stop(ctx):
-    global current_task, progress_message, start_time
-    
     try:
         # 음성 채널에 연결되어 있는지 확인
         if ctx.voice_client is not None:
-            # 현재 진행 중인 Task가 있는 경우 취소
-            if current_task is not None and not current_task.done():
-                current_task.cancel()
 
             # 오디오 재생 중지
             ctx.voice_client.stop()
-
-            # 진행바 관련 변수 초기화
-            current_task = None
-            progress_message = None
-            start_time = None
 
             await ctx.send("현재 재생 중인 음악을 중지합니다.")
         else:

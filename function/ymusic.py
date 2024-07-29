@@ -38,18 +38,3 @@ def get_youtube_audio_source(query):
         except Exception as e:
             print(f"Error extracting info: {e}")
             return None, None, None
-    
-def create_progress_bar(elapsed, duration, bar_length=30):
-    """재생바 생성 함수"""
-    progress = elapsed / duration
-    filled_length = int(bar_length * progress)
-    bar = '█' * filled_length + '-' * (bar_length - filled_length)
-    elapsed_time = format_time(elapsed)
-    total_time = format_time(duration)
-    return f"|{bar}| {elapsed_time} / {total_time}"
-
-def format_time(seconds):
-    """초를 MM:SS 형식으로 변환"""
-    minutes = int(seconds // 60)
-    seconds = int(seconds % 60)
-    return f"{minutes:02}:{seconds:02}"
