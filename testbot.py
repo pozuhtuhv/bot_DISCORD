@@ -117,7 +117,20 @@ class MusicQueue:
 
     def get_current_song(self):
         return self.current_song
+    
+    def format_queue(self):
+        # 현재 큐의 내용을 보기 좋게 포맷합니다.
+        if self.is_empty():
+            return "재생 목록이 비어 있습니다."
 
+        songs = list(self.queue._queue)  # asyncio.Queue에 저장된 항목을 가져옵니다.
+        queue_text = []
+        for idx, song in enumerate(songs, start=1):
+            title = song[1]  # song 튜플에서 title 가져오기
+            queue_text.append(f"{idx}. {title}")
+        
+        return "\n".join(queue_text)
+    
 # 전역 변수로 큐 생성
 music_queue = MusicQueue()
 
@@ -178,7 +191,6 @@ async def play(ctx, *, url):
     except Exception as e:
         await ctx.send(f"오류가 발생했습니다: {str(e)}")
 
-
 @bot.command(name='stop')
 async def stop(ctx):
     try:
@@ -193,6 +205,13 @@ async def stop(ctx):
             await ctx.send("봇이 음성 채널에 연결되어 있지 않습니다.")
     except Exception as e:
         await ctx.send(f"오류가 발생했습니다: {str(e)}")
+
+@bot.command(name='Que')
+async def Que(ctx):
+    # MusicQueue의 format_queue 메서드를 호출하여 큐의 내용을 가져옵니다.
+    queue_content = music_queue.format_queue()
+    embed = discord.Embed(title='재생목록', description=queue_content, color=0x00ff56)
+    await ctx.send(embed=embed)
 
 # 봇 작동
 bot.run(TOKEN)
