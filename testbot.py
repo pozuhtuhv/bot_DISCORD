@@ -70,9 +70,8 @@ async def hello(ctx):
 
 # 메세지 삭제
 @bot.command(name='clean')
-async def clean(ctx, ea:int):
-    await ctx.channel.purge(limit=ea)
-    await ctx.channel.send(str(ea) +'EA Message DELETE')
+async def clean(ctx):
+    await ctx.channel.purge(limit=int(100))
 
 # # 보이스채널 입장 (봇 실행시 자동입장)
 # @bot.command(name='voicein')
@@ -89,14 +88,14 @@ async def voiceout(ctx):
         await ctx.channel.purge(limit=99)
         await channel.disconnect()
 
-# Naver tts 출력
+# Naver tts 출력 (음악재생시 동시 이용불가)
 @bot.command(name='tts')
 async def on_message(ctx, *, text:str):
-    if str(ctx.channel.id) == str(VOICE_TEXTCHANNEL_ID):   
+    if str(ctx.channel.id) == str(VOICE_TEXTCHANNEL_ID):
         voice = bot.voice_clients[0]
         tts = NaverTTS(text, speed=0)
         tts.save('tts.mp3')
-        voice.play(discord.FFmpegPCMAudio('tts.mp3'))
+        await voice.play(discord.FFmpegPCMAudio('tts.mp3'))
 
 class MusicQueue:
     def __init__(self):
