@@ -16,12 +16,12 @@ VOICE_CHANNEL_ID = os.getenv('VOICE_CHANNEL_ID')
 VOICE_TEXTCHANNEL_ID = os.getenv('VOICE_TEXTCHANNEL_ID')
 ADMIN_ID = os.getenv('ADMIN_ID')
 STAFF_ROLE = "Admin"
-QUEUE_FILE = 'music_queue.json'
 
 # Define intents
 intents = discord.Intents.default()
 intents.message_content = True
 intents.voice_states = True
+
 # Initialize bot with intents
 
 # 명령어 시작부분
@@ -33,6 +33,20 @@ async def on_ready():
     channel = bot.get_channel(int(VOICE_CHANNEL_ID))
     await channel.connect()
     print(f'Logged in as: {bot.user}')
+
+@bot.command(name='command')
+async def command(ctx):
+    embed = discord.Embed(title='Command List', 
+                          description='''
+                            !restart - Admin / 봇 재시작\n
+                            !myrole - Everyone / 역할 출력\n
+                            !hello - Everyone / 작동확인\n
+                            !clean - Everyone / 채팅창청소\n
+                            !voicein - Everyone / 보이스채널입장\n
+                            !voiceout - Everyone / 보이스채널퇴장\n
+                            !tts - Everyone / 네이버 TTS\n
+                            !ymusic - Everyone / 유튜브 Audio 재생''', color=0x00ff56)
+    await ctx.send(embed=embed)
 
 # 봇 재시작
 @bot.command(name='restart')
@@ -99,110 +113,22 @@ async def on_message(ctx, *, text:str):
         tts.save('tts.mp3')
         await voice.play(discord.FFmpegPCMAudio('tts.mp3'))
 
+# ymusic
 # 현재 재생 중인 노래 정보를 저장할 변수
-current_song = None
-
-async def save_queue_to_file(queue):
-    with open(QUEUE_FILE, 'w', encoding='utf-8') as f:
-        json.dump(queue, f, ensure_ascii=False, indent=4)
-
-async def load_queue_from_file():
-    try:
-        with open(QUEUE_FILE, 'r', encoding='utf-8') as f:
-            queue = json.load(f)
-    except FileNotFoundError:
-        queue = []
-    return queue
-
-async def add_song_to_queue(song):
-    queue = await load_queue_from_file()
-    queue.append(song)
-    await save_queue_to_file(queue)
-
-async def get_next_song():
-    queue = await load_queue_from_file()
-    if queue:
-        next_song = queue.pop(0)
-        await save_queue_to_file(queue)
-        return next_song
-    return None
-
-def get_queue_list():
-    queue = asyncio.run(load_queue_from_file())
-    if not queue:
-        return "재생 목록이 비어 있습니다."
-
-    queue_text = [f"{idx + 1}. {song['title']}" for idx, song in enumerate(queue)]
-    return "\n".join(queue_text)
-
-async def play_next_song(ctx):
-    global current_song
-    next_song = await get_next_song()
-
-    audio_url = next_song['audio_url']
-    title = next_song['title']
-    original_url = next_song['original_url']
-
-    # 오디오 소스 생성
-    source = discord.FFmpegPCMAudio(
-        audio_url,
-        before_options='-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-        options='-vn -bufsize 64M'
-    )
-
-    # 현재 재생 중인 노래 설정
-    current_song = next_song
-
-    # 오디오 재생
-    ctx.voice_client.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(play_next_song(ctx), bot.loop) if e is None else print(f'오류 발생: {e}'))
-
-    embed = discord.Embed(title=f'{title}', description=f'{original_url}', color=0x00ff56)
-    await ctx.send(embed=embed)
-
-
 @bot.command(name='ymusic')
-async def play(ctx, *, url):
-    try:
-        # YouTube URL에서 오디오 스트리밍 소스 가져오기
-        audio_url, title, duration, original_url = get_youtube_audio_source(url)
-
-        if audio_url is None:
-            await ctx.send("오류가 발생했습니다. 유효한 YouTube URL을 입력하세요.")
-            return
-
-        # 큐에 추가
-        await add_song_to_queue({'audio_url': audio_url, 'title': title, 'duration': duration, 'original_url': original_url})
-
-        # 현재 재생 중인 음악이 없으면 재생 시작
-        if current_song is None or not ctx.voice_client.is_playing():
-            await play_next_song(ctx)
-        else:
-            await ctx.send(f"{title}이(가) 대기열에 추가되었습니다.")
-
-    except Exception as e:
-        await ctx.send(f"오류가 발생했습니다: {str(e)}")
+async def ymusic(ctx, *, url):
+    """유튜브 음악을 재생합니다."""
+    await play(ctx, bot, url, VOICE_CHANNEL_ID)
 
 @bot.command(name='stop')
-async def stop(ctx):
-    try:
-        # 음성 채널에 연결되어 있는지 확인
-        if ctx.voice_client is not None:
-            # 오디오 재생 중지
-            ctx.voice_client.stop()
-            global current_song
-            current_song = None  # 현재 재생 중인 노래를 None으로 설정
-
-            await ctx.send("현재 재생 중인 음악을 중지합니다.")
-        else:
-            await ctx.send("봇이 음성 채널에 연결되어 있지 않습니다.")
-    except Exception as e:
-        await ctx.send(f"오류가 발생했습니다: {str(e)}")
+async def stop_command(ctx):
+    """음악 재생을 중지합니다."""
+    await stop(ctx)
 
 @bot.command(name='Que')
-async def Que(ctx):
-    queue_content = get_queue_list()
-    embed = discord.Embed(title='재생목록', description=queue_content, color=0x00ff56)
-    await ctx.send(embed=embed)
+async def que_command(ctx):
+    """재생 목록을 표시합니다."""
+    await show_queue(ctx)
 
 # 봇 작동
 bot.run(TOKEN)
