@@ -122,8 +122,12 @@ async def stop(ctx):
 async def show_queue(ctx):
     """현재 재생 목록을 출력합니다."""
     queue_list = await get_queue_list()  # 코루틴 실행 결과를 대기
-    embed = discord.Embed(title='재생목록', description=queue_list, color=0x00ff56)
-    await ctx.send(embed=embed)
+    if not queue_list:
+        embed = discord.Embed(title='재생목록', description="재생목록이 비었습니다.", color=0x00ff56)
+        await ctx.send(embed=embed)
+    else:
+        embed = discord.Embed(title='재생목록', description=queue_list, color=0x00ff56)
+        await ctx.send(embed=embed)
 
 def get_youtube_audio_source(query):
     """YouTube URL이나 검색어로부터 오디오 소스를 가져옵니다."""
