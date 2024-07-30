@@ -8,3 +8,4 @@ pyvenv.cfg
 .env
 tts.mp3
 ffmpeg.exe
+music_queue.json

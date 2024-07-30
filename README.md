@@ -15,6 +15,7 @@
 6. Discord developer Page -> 'SELECTED APP' -> 'Bot' -> 'TOKEN' Copy
 7. 'Bot' -> 'MESSAGE CONTENT INTNET' Check -> 'Save Change'
     : 봇의 서버 메시지 읽기 권한 설정
-8. ffmpeg.exe download 
-9. pip install requirements.txt
-10. python testbot.py
+8. ffmpeg.exe download
+9. 'music_queue.json' make 
+10. pip install requirements.txt
+11. python testbot.py

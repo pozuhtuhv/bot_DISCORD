@@ -1,9 +1,7 @@
 import yt_dlp
 import re
 
-# Function to get the YouTube audio source from URL or search query
 def get_youtube_audio_source(query):
-    # 정규 표현식을 사용하여 입력이 URL인지 확인
     url_pattern = re.compile(r'^(https?://)?(www\.)?(youtube\.com|youtu\.?be)/.+$')
     ydl_opts = {
         'format': 'bestaudio/best',
@@ -23,11 +21,6 @@ def get_youtube_audio_source(query):
                 # 입력이 URL이 아닐 경우 검색어로 처리
                 query = f"ytsearch:{query}"
             info = ydl.extract_info(query, download=False)
-
-            # info 데이터 확인
-            # a = open("test.txt", 'w', encoding="utf-8")
-            # a.write(str(info))
-            # a.close()
 
             # 검색 결과일 경우 첫 번째 항목 가져오기
             if 'entries' in info:
