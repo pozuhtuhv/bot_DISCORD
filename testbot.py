@@ -45,7 +45,7 @@ async def command(ctx):
                             !voicein - Everyone / 보이스채널입장\n
                             !voiceout - Everyone / 보이스채널퇴장\n
                             !tts - Everyone / 네이버 TTS\n
-                            !ymusic - Everyone / 유튜브 Audio 재생''', color=0x00ff56)
+                            !ymusic - Everyone / 유튜브 Audio 재생 (검색어 or 주소)''', color=0x00ff56)
     await ctx.send(embed=embed)
 
 # 봇 재시작
@@ -53,7 +53,7 @@ async def command(ctx):
 async def restart(ctx):
     try:
         if any(role.name == str(STAFF_ROLE) for role in ctx.author.roles):
-            await ctx.send("봇을 재시작합니다.")
+            await ctx.send("봇 재시작")
 
             # 봇을 종료하고 프로세스를 다시 시작
             await bot.close()
@@ -77,7 +77,7 @@ async def list_roles(ctx):
         # 역할 이름 출력
         await ctx.send(f"{ctx.author.mention}님의 역할: " + ", ".join(role_names))
     else:
-        await ctx.send(f"{ctx.author.mention}님은 특별한 역할이 없습니다.")
+        await ctx.send(f"{ctx.author.mention}님은 역할이 없습니다.")
 
 # 인사
 @bot.command(name='hello')
@@ -117,17 +117,17 @@ async def on_message(ctx, *, text:str):
 # 현재 재생 중인 노래 정보를 저장할 변수
 @bot.command(name='ymusic')
 async def ymusic(ctx, *, url):
-    """유튜브 음악을 재생합니다."""
+    """유튜브 음악을 재생"""
     await play(ctx, bot, url, VOICE_CHANNEL_ID)
 
 @bot.command(name='stop')
 async def stop_command(ctx):
-    """음악 재생을 중지합니다."""
+    """음악 재생을 중지"""
     await stop(ctx)
 
 @bot.command(name='Que')
 async def que_command(ctx):
-    """재생 목록을 표시합니다."""
+    """재생 목록을 표시"""
     await show_queue(ctx)
 
 # 봇 작동

@@ -12,7 +12,7 @@ current_song = None
 
 # 큐 관리 함수들
 async def save_queue_to_file(queue):
-    """큐를 JSON 파일에 저장합니다."""
+    """큐를 JSON 파일에 저장"""
     with open(QUEUE_FILE, 'w', encoding='utf-8') as f:
         json.dump(queue, f, ensure_ascii=False, indent=4)
 
@@ -26,13 +26,13 @@ async def load_queue_from_file():
     return queue
 
 async def add_song_to_queue(song):
-    """노래를 큐에 추가하고 JSON 파일에 저장합니다."""
+    """노래를 큐에 추가하고 JSON 파일에 저장"""
     queue = await load_queue_from_file()
     queue.append(song)
     await save_queue_to_file(queue)
 
 async def get_next_song():
-    """큐에서 다음 노래를 가져오고 JSON 파일에 저장합니다."""
+    """큐에서 다음 노래를 가져오고 JSON 파일에 저장"""
     queue = await load_queue_from_file()
     if queue:
         next_song = queue.pop(0)
@@ -47,7 +47,7 @@ async def get_queue_list():
     return "\n".join(queue_text)
 
 async def play_next_song(ctx, bot):
-    """큐에서 다음 노래를 재생합니다."""
+    """큐에서 다음 노래를 재생"""
     global current_song
     next_song = await get_next_song()
 
@@ -73,7 +73,7 @@ async def play_next_song(ctx, bot):
 
 # 명령어 함수들
 async def play(ctx, bot, url, voice_channel_id):
-    """노래를 재생합니다."""
+    """노래를 재생"""
     global current_song
     try:
         channel = bot.get_channel(int(voice_channel_id))
@@ -104,7 +104,7 @@ async def play(ctx, bot, url, voice_channel_id):
         await ctx.send(f"오류가 발생했습니다: {str(e)}")
 
 async def stop(ctx):
-    """현재 재생 중인 음악을 중지합니다."""
+    """현재 재생 중인 음악을 중지"""
     global current_song
     try:
         # 음성 채널에 연결되어 있는지 확인
@@ -113,14 +113,14 @@ async def stop(ctx):
             ctx.voice_client.stop()
             current_song = None  # 현재 재생 중인 노래를 None으로 설정
 
-            await ctx.send("현재 재생 중인 음악을 중지합니다.")
+            await ctx.send("현재 재생 중인 음악을 중지")
         else:
             await ctx.send("봇이 음성 채널에 연결되어 있지 않습니다.")
     except Exception as e:
         await ctx.send(f"오류가 발생했습니다: {str(e)}")
 
 async def show_queue(ctx):
-    """현재 재생 목록을 출력합니다."""
+    """현재 재생 목록을 출력"""
     queue_list = await get_queue_list()  # 코루틴 실행 결과를 대기
     if not queue_list:
         embed = discord.Embed(title='재생목록', description="재생목록이 비었습니다.", color=0x00ff56)
