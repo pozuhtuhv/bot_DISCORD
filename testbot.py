@@ -4,7 +4,8 @@ import os
 from navertts import NaverTTS
 from dotenv import load_dotenv
 import sys
-from function.ymusic import *
+from function.ymusic import play, stop, show_queue
+from function.bus import station
 import asyncio
 import json
 
@@ -16,6 +17,7 @@ VOICE_CHANNEL_ID = os.getenv('VOICE_CHANNEL_ID')
 VOICE_TEXTCHANNEL_ID = os.getenv('VOICE_TEXTCHANNEL_ID')
 ADMIN_ID = os.getenv('ADMIN_ID')
 STAFF_ROLE = "Admin"
+BUS_KEY = os.getenv('BUS_KEY')
 
 # Define intents
 intents = discord.Intents.default()
@@ -129,6 +131,13 @@ async def stop_command(ctx):
 async def que_command(ctx):
     """재생 목록을 표시"""
     await show_queue(ctx)
+
+# bus
+# 현재 재생 중인 노래 정보를 저장할 변수
+@bot.command(name='bus')
+async def bus(ctx, *, station):
+    """버스정보"""
+    await bus(BUS_KEY, station)
 
 # 봇 작동
 bot.run(TOKEN)
