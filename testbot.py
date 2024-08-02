@@ -133,7 +133,6 @@ async def que_command(ctx):
     await show_queue(ctx)
 
 # bus
-# 현재 재생 중인 노래 정보를 저장할 변수
 @bot.command(name='bus')
 async def bus(ctx, *, station):
     """버스정보"""
